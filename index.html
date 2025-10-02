@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Text Converter</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        label { display: block; margin-bottom: 5px; }
+        textarea { width: 100%; margin-bottom: 10px; padding: 10px; border: 1px solid #ccc; }
+        select, button { margin-bottom: 10px; padding: 10px; }
+        #outputArea { border: 1px solid #ccc; padding: 10px; min-height: 100px; white-space: pre-wrap; }
+    </style>
+</head>
+<body>
+    <h1>Text Converter</h1>
+
+    <label for="inputText">Enter Text:</label>
+    <textarea id="inputText" rows="5"></textarea>
+
+    <label for="languageSelect">Select Language:</label>
+    <select id="languageSelect">
+        <option value="arabic">Arabic</option>
+        <option value="tamil">Tamil</option>
+    </select>
+
+    <button id="convertButton">Convert Text</button>
+
+    <h2>Converted Text:</h2>
+    <div id="outputArea"></div>
+
+    <script>
+        const rulesArabic = {
+            "a": "ا", "b": "ب", "c": "ك", "d": "د", "e": "ي", "f": "ف", "g": "ج", "h": "ه",
+            "i": "ي", "j": "ج", "k": "ك", "l": "ل", "m": "م", "n": "ن", "o": "و", "p": "پ",
+            "q": "ق", "r": "ر", "s": "س", "t": "ت", "u": "و", "v": "ڤ", "w": "و", "x": "خ",
+            "y": "ي", "z": "ز", "A": "ا", "B": "ب", "C": "ك", "D": "د", "E": "ي", "F": "ف",
+            "G": "ج", "H": "ه", "I": "ي", "J": "ج", "K": "ك", "L": "ل", "M": "م", "N": "ن",
+            "O": "و", "P": "پ", "Q": "ق", "R": "ر", "S": "س", "T": "ت", "U": "و", "V": "ڤ",
+            "W": "و", "X": "خ", "Y": "ي", "Z": "ز"
+        };
+
+        const rulesTamil = {
+            "a": "அ", "b": "ப", "c": "ச", "d": "ட", "e": "எ", "f": "ஃப", "g": "க", "h": "ஹ",
+            "i": "இ", "j": "ஜ", "k": "க", "l": "ல", "m": "ம", "n": "ந", "o": "ஒ", "p": "ப",
+            "q": "க்", "r": "ர", "s": "ஸ", "t": "ட", "u": "உ", "v": "வ", "w": "வ", "x": "க்ஸ்",
+            "y": "ய", "z": "Z", "A": "அ", "B": "ப", "C": "ச", "D": "ட", "E": "எ", "F": "ஃப",
+            "G": "க", "H": "ஹ", "I": "இ", "J": "ஜ", "K": "க", "L": "ல", "M": "ம", "N": "ந",
+            "O": "ஒ", "P": "ப", "Q": "க்", "R": "ர", "S": "ஸ", "T": "ட", "U": "உ", "V": "வ",
+            "W": "வ", "X": "க்ஸ்", "Y": "ய", "Z": "Z"
+        };
+
+
+        document.getElementById("convertButton").addEventListener("click", function() {
+            const inputText = document.getElementById("inputText").value;
+            const language = document.getElementById("languageSelect").value;
+            let convertedText = "";
+
+            const rules = language === "arabic" ? rulesArabic : rulesTamil;
+
+            for (let i = 0; i < inputText.length; i++) {
+                const char = inputText[i];
+                const convertedChar = rules[char] || char; // Use original character if no rule found
+                convertedText += convertedChar;
+            }
+
+            document.getElementById("outputArea").innerText = convertedText;
+        });
+    </script>
+</body>
+</html>
