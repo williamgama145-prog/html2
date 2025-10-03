@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Text Converter</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        label { display: block; margin-bottom: 5px; }
+        textarea { width: 100%; margin-bottom: 10px; padding: 10px; border: 1px solid #ccc; }
+        select, button { margin-bottom: 10px; padding: 10px; }
+        #outputArea { border: 1px solid #ccc; padding: 10px; min-height: 100px; white-space: pre-wrap; }
+    </style>
+</head>
+<body>
+    <h1>Text Converter</h1>
+
+    <label for="inputText">Enter Text:</label>
+    <textarea id="inputText" rows="5"></textarea>
+
+    <label for="languageSelect">Select Language:</label>
+    <select id="languageSelect">
+        <option value="arabic">Arabic</option>
+        <option value="tamil_literal">Tamil (Literal)</option>
+        <option value="tamil_syllabic">Tamil (Syllabic)</option>
+    </select>
+
+    <button id="convertButton">Convert Text</button>
+
+    <h2>Converted Text:</h2>
+    <div id="outputArea"></div>
+
+    <script>
+        const rulesArabic = {
+            "a": "ا", "b": "ب", "c": "ك", "d": "د", "e": "ي", "f": "ف", "g": "ج", "h": "ه",
+            "i": "ي", "ي": "ي", "j": "ج", "k": "ك", "l": "ل", "m": "م", "n": "ن", "o": "و", "p": "پ",
+            "q": "ق", "r": "ر", "s": "س", "t": "ت", "u": "و", "v": "ڤ", "w": "و", "x": "خ",
+            "y": "ي", "z": "ز", "A": "ا", "B": "b", "C": "k", "D": "d", "E": "e", "F": "f",
+            "G": "g", "H": "h", "I": "i", "J": "j", "K": "k", "L": "l", "M": "m", "N": "n",
+            "O": "o", "P": "p", "Q": "q", "R": "r", "S": "s", "T": "t", "U": "u", "V": "v",
+            "W": "w", "X": "x", "Y": "y", "Z": "z",
+            // Add Portuguese characters with diacritics
+            "á": "ا", "é": "ي", "í": "ي", "ó": "و", "ú": "و",
+            "à": "ا", "è": "ي", "ì": "ي", "ò": "و", "ù": "و",
+            "ã": "ا", "õ": "و",
+            "â": "ا", "ê": "ي", "î": "ي", "ô": "و", "û": "و",
+            "ç": "س" // Assuming 'ç' maps to 'س'
+        };
+
+        // Literal Tamil rules (phoneme by phoneme)
+        const rulesTamilLiteral = {
+            "a": "அ", "b": "ப", "c": "ச", "d": "ட", "e": "எ", "f": "ஃப", "g": "க", "h": "ஹ",
+            "i": "இ", "j": "ஜ", "k": "க", "l": "ல", "m": "ம", "n": "ந", "o": "ஒ", "p": "ப",
+            "q": "க்", "r": "ர", "s": "ஸ", "t": "ட", "u": "உ", "v": "வ", "w": "வ", "x": "க்ஸ்",
+            "y": "ய", "z": "Z", "A": "அ", "B": "ப", "C": "ச", "D": "ட", "E": "எ", "F": "ஃப",
+            "G": "க", "H": "ஹ", "I": "இ", "J": "ஜ", "K": "க", "L": "ல", "M": "ம", "N": "ந",
+            "O": "ஒ", "P": "ப", "Q": "க்", "R": "ர", "S": "ஸ", "T": "ட", "U": "உ", "V": "வ",
+            "W": "வ", "X": "க்ஸ்", "Y": "ய", "Z": "Z",
+             // Add Portuguese characters with diacritics (simplified mapping)
+            "á": "அ", "é": "ஏ", "í": "ஈ", "ó": "ஓ", "ú": "ஊ",
+            "à": "அ", "è": "எ", "ì": "இ", "ò": "ஒ", "ù": "உ",
+            "ã": "ஔ", "õ": "ஔ",
+            "â": "ஆ", "ê": "ஏ", "î": "ஈ", "ô": "ஓ", "û": "ஊ",
+            "ç": "ச்" // Assuming 'ç' maps to 'ச்'
+        };
+
+        // Syllabic Tamil rules (simplified for JavaScript)
+        const rulesTamilSyllabic = {
+             // Base Glyphs (Consonants with placeholder or Independent Vowels)
+            'a': 'அ', 'e': 'எ', 'i': 'இ', 'o': 'ஒ', 'u': 'உ',
+            'á': 'ஆ', 'é': 'ஏ', 'í': 'ஈ', 'ó': 'ஓ', 'ú': 'ஊ',
+            'ã': 'ஔ', 'õ': 'ஔ',
+
+            'b': 'ப்', 'c': 'க்', 'ç': 'ச்', 'd': 'ட்', 't': 'ட்',
+            'f': 'ஃப்', 'g': 'க்', 'h': 'ஹ்', 'j': 'ஜ்', 'k': 'க்',
+            'l': 'ல்', 'm': 'ம்', 'n': 'ந்', 'p': 'ப்', 'q': 'க்',
+            'r': 'ர்', 's': 'ஸ்', 'v': 'வ்', 'w': 'வ்', 'x': 'க்ஸ்',
+            'y': 'ய்', 'z': 'ஜ்',
+
+            'rr': 'ர்ர்', 'ss': 'ஸ்ஸ்', 'nh': 'ஞ்', 'ch': 'ச்', 'lh': 'ள்',
+
+            // Vowel Diacritics (mapping Portuguese vowel phonemes to Tamil diacritics)
+            '_diacritics_': { // Using a nested object for diacritics
+                'a': '', 'á': 'ா', 'e': 'ெ', 'é': 'ே', 'i': 'ி', 'í': 'ீ',
+                'o': 'ொ', 'ó': 'ோ', 'u': 'ு', 'ú': 'ூ', 'ã': 'ௌ', 'õ': 'ௌ',
+                'à': '', 'è': 'ெ', 'ì': 'ி', 'ò': 'ொ', 'ù': 'ு',
+                'â': 'ா', 'ê': 'ே', 'î': 'ீ', 'ô': 'ோ', 'û': 'ூ',
+            }
+        };
+
+        // Simplified function for syllabic conversion in JavaScript
+        function convertToTamilSyllabic(text) {
+            let result = "";
+            const baseRules = rulesTamilSyllabic;
+            const diacriticRules = rulesTamilSyllabic._diacritics_;
+            const combinacoes = ['rr', 'ss', 'nh', 'lh', 'ch', 'ão', 'õ', 'á', 'é', 'í', 'ó', 'ú', 'à', 'è', 'ì', 'ò', 'ù', 'â', 'ê', 'î', 'ô', 'û']; // Include accented chars
+
+            let i = 0;
+            while (i < text.length) {
+                let matched = false;
+                // Check for combinations first (longest match)
+                for (const comb of combinacoes.sort((a, b) => b.length - a.length)) {
+                    if (text.substring(i, i + comb.length).toLowerCase() === comb) {
+                        const base = baseRules[comb.toLowerCase()];
+                        if (base) {
+                             // Check if the next character is a vowel for syllabic combination
+                            if (i + comb.length < text.length && diacriticRules[text[i + comb.length].toLowerCase()] !== undefined) {
+                                const nextChar = text[i + comb.length].toLowerCase();
+                                const diacritic = diacriticRules[nextChar];
+                                if (base.endsWith('்')) { // If base is a pure consonant
+                                     result += base.slice(0, -1) + diacritic;
+                                } else { // If base is a combination that doesn't end in pulli (like rr)
+                                     result += base + diacritic;
+                                }
+                                i += comb.length + 1;
+                            } else { // No following vowel for combination, just append the base
+                                result += base;
+                                i += comb.length;
+                            }
+                            matched = true;
+                            break;
+                        }
+                    }
+                }
+
+                if (matched) continue;
+
+
+                const char = text[i].toLowerCase();
+                 // Check if the current character is a consonant
+                if (baseRules[char] && baseRules[char].endsWith('்') || ['b', 'c', 'ç', 'd', 'f', 'g', 'h', 'j', 'k', 'l', 'm', 'n', 'p', 'q', 'r', 's', 't', 'v', 'w', 'x', 'y', 'z'].includes(char)) {
+                     // Check if the next character is a vowel for syllabic combination
+                    if (i + 1 < text.length && diacriticRules[text[i + 1].toLowerCase()] !== undefined) {
+                        const nextChar = text[i + 1].toLowerCase();
+                        const diacritic = diacriticRules[nextChar];
+                        const base = baseRules[char] || char;
+                        if (base.endsWith('்')) { // If base is a pure consonant
+                            result += base.slice(0, -1) + diacritic;
+                        } else { // Should not happen with single consonants if map is correct, but as fallback
+                             result += base + diacritic;
+                        }
+                        i += 2;
+                    } else { // No following vowel for combination, just append the base consonant (with pulli)
+                         result += baseRules[char] || char;
+                         i += 1;
+                    }
+
+                } else { // Not a consonant that can combine, or it's punctuation/space/independent vowel
+                    result += baseRules[char] || text[i]; // Append the base glyph or original character
+                    i += 1;
+                }
+            }
+            return result;
+        }
+
+
+        document.getElementById("convertButton").addEventListener("click", function() {
+            const inputText = document.getElementById("inputText").value;
+            const language = document.getElementById("languageSelect").value;
+            let convertedText = "";
+
+            if (language === "arabic") {
+                const rules = rulesArabic;
+                 for (let i = 0; i < inputText.length; i++) {
+                    const char = inputText[i];
+                    const convertedChar = rules[char] || char; // Use original character if no rule found
+                    convertedText += convertedChar;
+                }
+            } else if (language === "tamil_literal") {
+                 const rules = rulesTamilLiteral;
+                 for (let i = 0; i < inputText.length; i++) {
+                    const char = inputText[i];
+                    const convertedChar = rules[char] || char; // Use original character if no rule found
+                    convertedText += convertedChar;
+                }
+            } else if (language === "tamil_syllabic") {
+                convertedText = convertToTamilSyllabic(inputText);
+            }
+
+
+            document.getElementById("outputArea").innerText = convertedText;
+        });
+    </script>
+</body>
+</html>
