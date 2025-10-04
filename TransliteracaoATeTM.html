@@ -1,28 +1,75 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<title>Transliteração PT → Tamil / Árabe</title>
+<style>
+body { font-family: Arial, sans-serif; padding: 20px; background: #f7f7f7; }
+textarea { width: 100%; height: 100px; font-size: 16px; padding: 8px; }
+button { margin-top: 8px; padding: 10px 16px; font-size: 16px; }
+pre { background: #fff; border: 1px solid #ddd; padding: 12px; border-radius: 6px; white-space: pre-wrap; }
+.label { font-weight: bold; margin-top: 12px; display: inline-block; margin-right: 5px; }
+.speaker { width: 20px; height: 20px; cursor: pointer; vertical-align: middle; }
+</style>
+</head>
+<body>
+
+<h2>Transliteração PT → Tamil / Árabe</h2>
+
+<textarea id="inputText">Carro é bonito, João foi lá.</textarea><br>
+
+<select id="variantSelect">
+  <option value="all">Todos</option>
+  <option value="tamilLiteral">Tamil Literal</option>
+  <option value="tamilSyllabic">Tamil Silábico</option>
+  <option value="arabic">Árabe</option>
+</select>
+<button onclick="transliterar()">Transliterar</button>
+
 <div id="resultArea">
-  <div id="tamilLiteralDiv" style="display:none">
+  <div id="tamilLiteralDiv" style="display:block; margin-top:15px;">
     <span class="label">Tamil Literal:</span>
     <img src="https://img.icons8.com/material-outlined/24/000000/speaker.png" class="speaker" onclick="playTTS('tamilLiteral','ta')">
-    <pre id="tamilLiteral"></pre>
+    <pre id="tamilLiteral">வணக்கம், ஜோவா கார் அழகாக உள்ளது.</pre>
   </div>
 
-  <div id="tamilSyllabicDiv" style="display:none">
+  <div id="tamilSyllabicDiv" style="display:block; margin-top:15px;">
     <span class="label">Tamil Silábico:</span>
     <img src="https://img.icons8.com/material-outlined/24/000000/speaker.png" class="speaker" onclick="playTTS('tamilSyllabic','ta')">
-    <pre id="tamilSyllabic"></pre>
+    <pre id="tamilSyllabic">வ-ண-க்-க-ம், ஜோ-வா கா-ர் அ-ழ-கா-க் உ-ள்-ள-து.</pre>
   </div>
 
-  <div id="arabicDiv" style="display:none">
+  <div id="arabicDiv" style="display:block; margin-top:15px;">
     <span class="label">Árabe:</span>
     <img src="https://img.icons8.com/material-outlined/24/000000/speaker.png" class="speaker" onclick="playTTS('arabicOut','ar')">
-    <pre id="arabicOut"></pre>
+    <pre id="arabicOut">السيارة جميلة، ذهب جوا إلى هناك.</pre>
   </div>
 </div>
 
-<!-- Botão para ouvir o texto original em Português -->
-<div>
+<div style="margin-top:20px;">
   <span class="label">Português:</span>
   <img src="https://img.icons8.com/material-outlined/24/000000/speaker.png" class="speaker" onclick="playTTS('inputText','pt')">
 </div>
+
+<script>
+// Função TTS usando fetch + Blob (funciona no Android)
+async function playTTS(id, lang){
+    const el = document.getElementById(id);
+    const text = el?.value || el?.textContent?.trim();
+    if(!text) return alert('Texto vazio!');
+    try {
+        const url = `https://translate.google.com/translate_tts?ie=UTF-8&q=${encodeURIComponent(text)}&tl=${lang}&client=tw-ob`;
+        const response = await fetch(url);
+        if(!response.ok) throw new Error('Falha ao obter áudio');
+        const blob = await response.blob();
+        const audioURL = URL.createObjectURL(blob);
+        const audio = new Audio(audioURL);
+        await audio.play();
+    } catch(err){
+        console.warn('Erro ao tocar áudio:', err);
+        alert('Não foi possível tocar o áudio. Tente tocar o ícone novamente.');
+    }
+}
 
   
 
@@ -264,6 +311,7 @@ document.addEventListener('DOMContentLoaded',()=>{ transliterar(); });
 </script>
 </body>
 </html>
+
 
 
 
