@@ -61,12 +61,12 @@ pre{background:#fff;border:1px solid #ddd;padding:12px;border-radius:6px;white-s
 </div>
 
 <script>
-/* --- Normalização --- */
+/* --- NORMALIZAÇÃO --- */
 function normalizePT(text){
-  return text.normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/ç/g,'س');
+  return (text||"").normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase();
 }
 
-/* --- Mapas --- */
+/* --- MAPAS TAMIL --- */
 const TAM_LIT = {
   'a':'அ','b':'ப','c':'க்','d':'ட்','e':'எ','f':'ஃப','g':'க்','h':'ஹ','i':'இ','j':'ஜ',
   'k':'க்','l':'ல','m':'ம','n':'ந','o':'ஒ','p':'ப','q':'க்','r':'ர','s':'ஸ','t':'ட்',
@@ -82,155 +82,102 @@ const TAM_VOW_IND = {'a':'அ','e':'எ','i':'இ','o':'ஒ','u':'உ'};
 const TAM_VOW_DIAC = {'a':'','e':'ெ','i':'ி','o':'ொ','u':'ு'};
 const SIL_DG = ['nh','lh','rr','ss','ch'];
 
+/* --- MAPA ÁRABE --- */
 const ARAB_MAP = {
-
-  // 🔹 Trigramas / sons combinados
-  'tra':'ترا',
-  'tri':'تري',
-  'tre':'تري',
-  'tro':'ترو',
-  'tra':'ترا',
-  'lli':'لي',
-  'lha':'لا',
-  'nhã':'نيا',
-  'nhá':'نيا',
-  'ção':'ساو',
-  'ções':'ساوس',
-  'lha':'ليا',
-  'lho':'ليو',
-  'lhe':'ليي',
-  'cha':'شا',
-  'che':'شي',
-  'chi':'شي',
-  'cho':'شو',
-  'gui':'غي',
-  'gue':'غي',
-  'güe':'غي',
-  'gão':'غاو',
-  'rro': 'حو',
-
-  // 🔹 Digramas
+  /* Trigramas / sons combinados */
+  'tra':'ترا','tri':'تري','tre':'تري','tro':'ترو','lli':'لي','lha':'ليا','lho':'ليو','lhe':'ليي',
+  'nhã':'نيا','nhá':'نيا','ção':'ساو','ções':'ساوس','cha':'شا','che':'شي','chi':'شي','cho':'شو',
+  'gui':'غي','gue':'غي','güe':'غي','gão':'غاو','rro':'حو',
+  /* Digramas */
   'ca':'كا','co':'كو','cu':'كو','ce':'سي','ci':'سي',
   'ça':'سا','çã':'سا','çá':'سا','çi':'سي','çí':'سي','ço':'سو','çó':'سو','çu':'سو','çú':'سو','çõ':'سو',
-  'nh':'ن','lh':'ل',
-  'rr':'ر',  // RR aspirado simplificado
-  'ss':'س',
-
-  // 🔹 Letras isoladas
+  'nh':'ن','lh':'ل','rr':'ر','ss':'س',
+  /* Letras isoladas */
   'a':'ا','b':'ب','c':'ك','ç':'س','d':'د','e':'ي','f':'ف','g':'ج','h':'ه','i':'ي','j':'ج',
   'k':'ك','l':'ل','m':'م','n':'ن','o':'و','p':'ب','q':'ق','r':'ر','s':'س','t':'ت',
   'u':'و','v':'ف','w':'و','x':'كس','y':'ي','z':'ز',
   ' ':' ','!':'!','.':'.',',':',','?':'؟','-':'-'
 };
 
-
-// 🔹 Função para normalizar acentos
-function normalizePT(txt) {
-  return txt.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
-}
-
-
-// 🔹 Função para ajustar Rs (antes de aplicar ARAB_MAP)
-function ajustarRs(texto) {
-  return texto.split(/\b/).map(palavra => {
-    if (!/^[a-zA-Z]+$/.test(palavra)) return palavra;
+/* --- AJUSTE DE Rs --- */
+function ajustarRs(texto){
+  return (texto||"").split(/\b/).map(palavra=>{
+    if(!/^[a-zA-Z]+$/.test(palavra)) return palavra;
     let p = palavra.toLowerCase();
-
-    // RR → aspirado forte
     p = p.replace(/rr/g, 'ح');
-
-    // R no início → aspirado
     p = p.replace(/^r/g, 'ح');
-
-    // R antes de consoante forte (k, t, p, q, c)
     p = p.replace(/r(?=[ktpqc])/g, 'ح');
-
-    // R entre vogais → suave
     p = p.replace(/(?<=[aeiou])r(?=[aeiou])/g, 'ر');
-
-    // R no final → suave
-    p = p.replace(/r$/g, 'ر');
-
-    // Restante (fallback)
+    p = p.replace(/r$/g, 'ح');
     p = p.replace(/r/g, 'ر');
-
     return p;
   }).join('');
 }
 
-
-// 🔹 Função principal de transliteração
-function translitArabic(text) {
-  const ajustado = ajustarRs(text);
+/* --- Transliteração árabe --- */
+function translitArabic(text){
+  const ajustado = ajustarRs(text || "");
   const s = normalizePT(ajustado);
-
-  // Aplicar substituições compostas (trigramas e digramas)
+  const keys = Object.keys(ARAB_MAP).sort((a,b)=>b.length-a.length);
   let resultado = s;
-  const chaves = Object.keys(ARAB_MAP).sort((a, b) => b.length - a.length);
-  for (const chave of chaves) {
-    const valor = ARAB_MAP[chave];
-    resultado = resultado.replaceAll(chave, valor);
-  }
-
+  for(const k of keys){ resultado = resultado.split(k).join(ARAB_MAP[k]); }
   return resultado;
 }
 
-
-};
-
 /* --- Tamil Literal --- */
 function translitTamilLiteral(text){
-  const s = normalizePT(text.toLowerCase());
-  let out='';
+  const s = normalizePT(text||"");
+  let out = '';
   for(let i=0;i<s.length;){
-    let matched=false;
+    let matched = false;
     for(const dg of SIL_DG){
-      if(s.substr(i,dg.length)===dg){
-        for(const ch of dg) out += (TAM_LIT[ch]||ch);
-        i+=dg.length; matched=true; break;
+      if(s.substr(i,dg.length) === dg){
+        for(const ch of dg) out += (TAM_LIT[ch] || ch);
+        i += dg.length;
+        matched = true;
+        break;
       }
     }
     if(matched) continue;
-    out += (TAM_LIT[s[i]]||s[i]); i++;
+    out += (TAM_LIT[s[i]] || s[i]);
+    i++;
   }
   return out;
 }
 
 /* --- Tamil Silábico --- */
 function translitTamilSyllabic(text){
-  const s = normalizePT(text.toLowerCase());
-  const tokens = s.match(/\s+|\S+/g)||[];
+  const s = normalizePT(text||"");
+  const tokens = s.match(/\s+|\S+/g) || [];
   const out = tokens.map(tok=>{
     if(!/[a-z]/.test(tok)) return tok;
-    const phon=[];
+    const phon = [];
     for(let i=0;i<tok.length;){
-      let found=false;
+      let found = false;
       for(const dg of SIL_DG){
-        if(tok.substr(i,dg.length)===dg){ phon.push(dg); i+=dg.length; found=true; break; }
+        if(tok.substr(i,dg.length) === dg){ phon.push(dg); i+=dg.length; found=true; break; }
       }
       if(found) continue;
       phon.push(tok[i]); i++;
     }
-    const res=[];
+    const res = [];
     for(let i=0;i<phon.length;){
-      const p=phon[i];
+      const p = phon[i];
       if(TAM_BASE[p]){
-        const next=phon[i+1];
+        const next = phon[i+1];
         if(next && ['a','e','i','o','u'].includes(next)){
-          const base=TAM_BASE[p].replace(/்$/,'');
-          const diac=TAM_VOW_DIAC[next];
-          res.push(base+diac);
-          i+=2;
+          const base = TAM_BASE[p].replace(/்$/,'');
+          const diac = TAM_VOW_DIAC[next] || '';
+          res.push(base + diac);
+          i += 2;
         } else { res.push(TAM_BASE[p]); i++; }
       } else if(['a','e','i','o','u'].includes(p)){ res.push(TAM_VOW_IND[p]||p); i++; }
-      else{ res.push(TAM_LIT[p]||p); i++; }
+      else{ res.push(TAM_LIT[p] || p); i++; }
     }
     return res.join('');
   });
   return out.join('');
 }
-
-/* --- Árabe --- */
 
 
 /* --- Memória --- */
@@ -271,10 +218,9 @@ function renderSavedTexts(){
     const del=document.createElement('button');
     del.textContent='❌ Apagar';
     del.onclick=()=>{ savedTexts.splice(i,1); localStorage.setItem('savedTexts',JSON.stringify(savedTexts)); renderSavedTexts();};
-    const audio=document.createElement('img');
-    audio.src="https://img.icons8.com/material-outlined/24/000000/speaker.png";
-    audio.className="audioBtn";
-    audio.onclick=()=>{
+    const speak=document.createElement('none');
+   // speak.textContent='🔊 Ouvir';
+    speak.onclick=()=>{
       if(typeof t==='string') speakTextDirect(t,'pt-BR');
       else{
         if(t.tamilLiteral) speakTextDirect(t.tamilLiteral,'ta-IN');
@@ -282,45 +228,37 @@ function renderSavedTexts(){
         if(t.arabic) speakTextDirect(t.arabic,'ar-SA');
       }
     };
-    div.appendChild(audio);
     div.appendChild(del);
+    div.appendChild(speak);
     area.appendChild(div);
   });
+
+
 }
 
-
-/* --- ÁUDIO (substituição mínima) usando Google TTS --- */
+/* --- ÁUDIO --- */
 function speakOnline(id){
-  let text = '';
-  let lang = 'pt';
-  if(id === 'tamilLiteral' || id === 'tamilSilabic' || id === 'tamilSyllabic'){
-    text = (document.getElementById('tamilLiteral') || document.getElementById('tamilSilabic') || document.getElementById('tamilSyllabic')).textContent || '';
-    lang = 'ta';
-    if(document.getElementById(id)) text = document.getElementById(id).textContent || text;
-  } else if(id === 'arabic' || id === 'arabicOut'){
-    text = (document.getElementById('arabicOut') || document.getElementById('arabic')).textContent || '';
-    lang = 'ar';
-  } else {
-    const el = document.getElementById(id);
-    if(el) text = el.textContent || '';
-  }
-  text = (text || '').toString().trim();
-  if(!text) return;
-  const url = `https://translate.google.com/translate_tts?ie=UTF-8&q=${encodeURIComponent(text)}&tl=${lang}&client=tw-ob`;
-  const audio = new Audio(url);
-  audio.play().catch(err => console.warn('Erro ao tocar audio:', err));
+  let text=''; let lang='pt';
+  if(id==='tamilLiteral'||id==='tamilSilabic'||id==='tamilSyllabic'){
+    text=(document.getElementById('tamilLiteral')||document.getElementById('tamilSilabic')||document.getElementById('tamilSyllabic')).textContent||'';
+    lang='ta'; if(document.getElementById(id)) text=document.getElementById(id).textContent||text;
+  } else if(id==='arabic'||id==='arabicOut'){
+    text=(document.getElementById('arabicOut')||document.getElementById('arabic')).textContent||'';
+    lang='ar';
+  } else{ const el=document.getElementById(id); if(el) text=el.textContent||''; }
+  text=(text||'').toString().trim(); if(!text) return;
+  const url=`https://translate.google.com/translate_tts?ie=UTF-8&q=${encodeURIComponent(text)}&tl=${lang}&client=tw-ob`;
+  const audio=new Audio(url); audio.play().catch(err=>console.warn('Erro ao tocar audio:',err));
 }
 
 function speakOnlineFromText(text,variant){
-  if(!text || !text.toString().trim()) return;
+  if(!text||!text.toString().trim()) return;
   let lang='pt';
-  if(variant==='tamilLiteral' || variant==='tamilSyllabic' || variant==='tamilSilabic') lang='ta';
-  if(variant==='arabic' || variant==='arabicOut') lang='ar';
-  const url = `https://translate.google.com/translate_tts?ie=UTF-8&q=${encodeURIComponent(text)}&tl=${lang}&client=tw-ob`;
-  const audio = new Audio(url);
-  audio.play().catch(err => console.warn('Erro ao tocar audio salvo:', err));
+  if(variant==='tamilLiteral'||variant==='tamilSyllabic'||variant==='tamilSilabic') lang='ta';
+  if(variant==='arabic'||variant==='arabicOut') lang='ar';
+  const url=`https://translate.google.com/translate_tts?ie=UTF-8&q=${encodeURIComponent(text)}&tl=${lang}&client=tw-ob`;
+  const audio=new Audio(url); audio.play().catch(err=>console.warn('Erro ao tocar audio salvo:',err));
 }
-
 
 /* --- Transliterate com seletor --- */
 function transliterar(){
@@ -351,9 +289,9 @@ function transliterar(){
   }
 }
 
-
 /* --- Inicialização --- */
 document.addEventListener('DOMContentLoaded',()=>{ transliterar(); });
+
 </script>
 </body>
 </html>
