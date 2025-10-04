@@ -1,73 +1,28 @@
-<!DOCTYPE html>
-<html lang="pt-BR">
-<head>
-<meta charset="utf-8">
-<title>Transliteração PT → Tamil / Árabe</title>
-<style>
-body{font-family:Arial,sans-serif;padding:20px;background:#f7f7f7;}
-textarea{width:100%;height:100px;font-size:16px;padding:8px;}
-button{margin-top:8px;padding:10px 16px;font-size:16px;}
-pre{background:#fff;border:1px solid #ddd;padding:12px;border-radius:6px;white-space:pre-wrap;}
-.label{font-weight:bold;margin-top:12px;display:inline-block;margin-right:5px;}
-.speaker{width:20px;height:20px;cursor:pointer;vertical-align:middle;}
-#savedTextsArea div{margin-bottom:5px;padding:5px;border:1px solid #ccc;border-radius:5px;background:#f0f0f0;}
-#savedTextsWindow{display:none;position:fixed;top:50px;left:50%;transform:translateX(-50%);width:90%;max-width:500px;height:70%;background:#fff;border:2px solid #000;overflow:auto;padding:10px;z-index:1000;}
-#savedTextsWindow h3{margin-top:0;}
-#closeSavedWindow{float:right;cursor:pointer;font-weight:bold;}
-.audioBtn{cursor:pointer;margin-left:8px;vertical-align:middle;}
-</style>
-</head>
-<body>
-
-
-
-
-  
-<button onclick="playTTS('portugues','pt')">Ouvir Português</button>
-<button onclick="playTTS('tamilLiteral','ta')">Ouvir Tamil</button>
-<button onclick="playTTS('arabicOut','ar')">Ouvir Árabe</button>
-
-
-
-  
-<h2>Transliteração PT → Tamil / Árabe</h2>
-<textarea id="inputText">Carro é bonito, João foi lá.</textarea><br>
-
-<select id="variantSelect">
-  <option value="all">Todos</option>
-  <option value="tamilLiteral">Tamil Literal</option>
-  <option value="tamilSyllabic">Tamil Silábico</option>
-  <option value="arabic">Árabe</option>
-</select>
-<button onclick="transliterar()">Transliterar</button>
-
 <div id="resultArea">
   <div id="tamilLiteralDiv" style="display:none">
     <span class="label">Tamil Literal:</span>
-    <img src="https://img.icons8.com/material-outlined/24/000000/speaker.png" class="speaker" onclick="speakOnline('tamilLiteral')">
+    <img src="https://img.icons8.com/material-outlined/24/000000/speaker.png" class="speaker" onclick="playTTS('tamilLiteral','ta')">
     <pre id="tamilLiteral"></pre>
   </div>
 
   <div id="tamilSyllabicDiv" style="display:none">
     <span class="label">Tamil Silábico:</span>
-    <img src="https://img.icons8.com/material-outlined/24/000000/speaker.png" class="speaker" onclick="speakOnline('tamilSyllabic')">
+    <img src="https://img.icons8.com/material-outlined/24/000000/speaker.png" class="speaker" onclick="playTTS('tamilSyllabic','ta')">
     <pre id="tamilSyllabic"></pre>
   </div>
 
   <div id="arabicDiv" style="display:none">
     <span class="label">Árabe:</span>
-    <img src="https://img.icons8.com/material-outlined/24/000000/speaker.png" class="speaker" onclick="speakOnline('arabic')">
+    <img src="https://img.icons8.com/material-outlined/24/000000/speaker.png" class="speaker" onclick="playTTS('arabicOut','ar')">
     <pre id="arabicOut"></pre>
   </div>
 </div>
 
-
-
-
-  <button onclick="playTTS('portugues','pt')">Ouvir Português</button>
-<button onclick="playTTS('tamilLiteral','ta')">Ouvir Tamil</button>
-<button onclick="playTTS('arabicOut','ar')">Ouvir Árabe</button>
-
+<!-- Botão para ouvir o texto original em Português -->
+<div>
+  <span class="label">Português:</span>
+  <img src="https://img.icons8.com/material-outlined/24/000000/speaker.png" class="speaker" onclick="playTTS('inputText','pt')">
+</div>
 
   
 
@@ -309,5 +264,6 @@ document.addEventListener('DOMContentLoaded',()=>{ transliterar(); });
 </script>
 </body>
 </html>
+
 
 
