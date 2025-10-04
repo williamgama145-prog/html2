@@ -181,19 +181,32 @@ function translitTamilSyllabic(text){
 let savedTexts = JSON.parse(localStorage.getItem('savedTexts')||'[]');
 
 function saveCurrentText(){
+  if(!window.localStorage){
+    alert("Seu navegador não suporta armazenamento local.");
+    return;
+  }
   const variant = document.getElementById('variantSelect').value;
   let txt='';
-  if(variant==='tamilLiteral') txt=translitTamilLiteral(document.getElementById('inputText').value);
-  else if(variant==='tamilSyllabic') txt=translitTamilSyllabic(document.getElementById('inputText').value);
-  else if(variant==='arabic') txt=translitArabic(document.getElementById('inputText').value);
-  else txt={
-    'tamilLiteral':translitTamilLiteral(document.getElementById('inputText').value),
-    'tamilSyllabic':translitTamilSyllabic(document.getElementById('inputText').value),
-    'arabic':translitArabic(document.getElementById('inputText').value)
+  const inputVal = document.getElementById('inputText').value;
+  
+  if(variant==='tamilLiteral') txt = translitTamilLiteral(inputVal);
+  else if(variant==='tamilSyllabic') txt = translitTamilSyllabic(inputVal);
+  else if(variant==='arabic') txt = translitArabic(inputVal);
+  else txt = {
+    'tamilLiteral': translitTamilLiteral(inputVal),
+    'tamilSyllabic': translitTamilSyllabic(inputVal),
+    'arabic': translitArabic(inputVal)
   };
-  savedTexts.push(txt);
-  localStorage.setItem('savedTexts',JSON.stringify(savedTexts));
 
+  savedTexts.push(txt);
+  try{
+    localStorage.setItem('savedTexts', JSON.stringify(savedTexts));
+    alert("Texto salvo com sucesso!"); // feedback imediato
+  } catch(e){
+    alert("Não foi possível salvar. Memória cheia ou navegador bloqueando.");
+  }
+  renderSavedTexts();
+  openSavedWindow();
 }
 
 function openSavedWindow(){
@@ -268,5 +281,6 @@ document.addEventListener('DOMContentLoaded',()=>{ transliterar(); });
 </script>
 </body>
 </html>
+
 
 
