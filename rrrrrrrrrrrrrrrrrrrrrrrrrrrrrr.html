@@ -1,0 +1,307 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<title>Transliteração PT → Tamil / Árabe</title>
+<style>
+body{font-family:Arial,sans-serif;padding:20px;background:#f7f7f7;}
+textarea{width:100%;height:100px;font-size:16px;padding:8px;}
+button{margin-top:8px;padding:10px 16px;font-size:16px;}
+pre{background:#fff;border:1px solid #ddd;padding:12px;border-radius:6px;white-space:pre-wrap;}
+.label{font-weight:bold;margin-top:12px;display:inline-block;margin-right:5px;}
+.speaker{width:20px;height:20px;cursor:pointer;vertical-align:middle;}
+#savedTextsArea div{margin-bottom:5px;padding:5px;border:1px solid #ccc;border-radius:5px;background:#f0f0f0;}
+#savedTextsWindow{display:none;position:fixed;top:50px;left:50%;transform:translateX(-50%);width:90%;max-width:500px;height:70%;background:#fff;border:2px solid #000;overflow:auto;padding:10px;z-index:1000;}
+#savedTextsWindow h3{margin-top:0;}
+#closeSavedWindow{float:right;cursor:pointer;font-weight:bold;}
+.audioBtn{cursor:pointer;margin-left:8px;vertical-align:middle;}
+</style>
+</head>
+<body>
+
+<h2>Transliteração PT → Tamil / Árabe</h2>
+<textarea id="inputText"></textarea><br>
+
+<select id="variantSelect">
+  <option value="all">Todos</option>
+  <option value="tamilLiteral">Tamil Literal</option>
+  <option value="tamilSyllabic">Tamil Silábico</option>
+  <option value="arabic">Árabe</option>
+</select>
+<button onclick="transliterar()">Transliterar</button>
+
+<div id="resultArea">
+  <div id="tamilLiteralDiv" style="display:none">
+    <span class="label">Tamil Literal:</span>
+    <pre id="tamilLiteral"></pre>
+  </div>
+
+  <div id="tamilSyllabicDiv" style="display:none">
+    <span class="label">Tamil Silábico:</span>
+    <pre id="tamilSyllabic"></pre>
+  </div>
+
+  <div id="arabicDiv" style="display:none">
+    <span class="label">Árabe:</span>
+    <pre id="arabicOut"></pre>
+  </div>
+</div>
+
+<h3>Memória do Aplicativo</h3>
+<button onclick="saveCurrentText()">💾 Salvar Texto Atual</button>
+<button onclick="openSavedWindow()">📄 Ver Textos Salvos</button>
+
+<!-- Janela separada de textos salvos -->
+<div id="savedTextsWindow">
+  <h3>Textos Salvos <span id="closeSavedWindow" onclick="closeSavedWindow()">✖</span></h3>
+  <div id="savedTextsArea"></div>
+</div>
+
+<script>
+/* --- NORMALIZAÇÃO --- */
+function normalizePT(text){
+  return (text||"").normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase();
+}
+
+/* --- MAPAS TAMIL --- */
+const TAM_LIT = {
+  'a':'அ','b':'ப','c':'க்','d':'ட்','e':'எ','f':'ஃப','g':'க்','h':'ஹ','i':'இ','j':'ஜ',
+  'k':'க்','l':'ல','m':'ம','n':'ந','o':'ஒ','p':'ப','q':'க்','r':'ர','s':'ஸ','t':'ட்',
+  'u':'உ','v':'வ','w':'வ','x':'க்ஸ்','y':'ய','z':'ஜ',
+  ' ':' ','!':'!','.':'.',',':',','?':'?','-':'-'
+};
+const TAM_BASE = {
+  'b':'ப்','c':'க்','d':'ட்','f':'ஃப்','g':'க்','h':'ஹ்','j':'ஜ்','k':'க்','l':'ல்',
+  'm':'ம்','n':'ந்','p':'ப்','q':'க்','r':'ர்','s':'ஸ்','t':'ட்','v':'வ்','w':'வ்',
+  'x':'க்ஸ்','y':'ய்','z':'ஜ்','rr':'ர்ர்','ss':'ஸ்ஸ','nh':'ஞ்','ch':'ச்','lh':'ள்'
+};
+const TAM_VOW_IND = {'a':'அ','e':'எ','i':'இ','o':'ஒ','u':'உ'};
+const TAM_VOW_DIAC = {'a':'','e':'ெ','i':'ி','o':'ொ','u':'ு'};
+const SIL_DG = ['nh','lh','rr','ss','ch'];
+
+/* --- MAPA ÁRABE --- */
+const ARAB_MAP = {
+  /* Trigramas / sons combinados */
+  'tra':'ترا','tri':'تري','tre':'تري','tro':'ترو','lli':'لي','lha':'ليا','lho':'ليو','lhe':'ليي',
+  'nhã':'نيا','nhá':'نيا','ção':'ساو','ções':'ساوس','cha':'شا','che':'شي','chi':'شي','cho':'شو',
+  'gui':'غي','gue':'غي','güe':'غي','gão':'غاو','rro':'حو',
+  /* Digramas */
+  'ca':'كا','co':'كو','cu':'كو','ce':'سي','ci':'سي',
+  'ça':'سا','çã':'سا','çá':'سا','çi':'سي','çí':'سي','ço':'سو','çó':'سو','çu':'سو','çú':'سو','çõ':'سو',
+  'nh':'ن','lh':'ل','rr':'ر','ss':'س',
+  /* Letras isoladas */
+  'a':'ا','b':'ب','c':'ك','ç':'س','d':'د','e':'ي','f':'ف','g':'ج','h':'ه','i':'ي','j':'ج',
+  'k':'ك','l':'ل','m':'م','n':'ن','o':'و','p':'ب','q':'ق','r':'ر','s':'س','t':'ت',
+  'u':'و','v':'ف','w':'و','x':'كس','y':'ي','z':'ز',
+  ' ':' ','!':'!','.':'.',',':',','?':'؟','-':'-'
+};
+
+/* --- AJUSTE DE Rs --- */
+function ajustarRs(texto){
+  return (texto||"").split(/\b/).map(palavra=>{
+    if(!/^[a-zA-Z]+$/.test(palavra)) return palavra;
+    let p = palavra.toLowerCase();
+    p = p.replace(/rr/g, 'ح');
+    p = p.replace(/^r/g, 'ح');
+    p = p.replace(/r(?=[ktpqc])/g, 'ح');
+    p = p.replace(/(?<=[aeiou])r(?=[aeiou])/g, 'ر');
+    p = p.replace(/r$/g, 'ح');
+    p = p.replace(/r/g, 'ر');
+    return p;
+  }).join('');
+}
+
+/* --- Transliteração árabe --- */
+function translitArabic(text){
+  const ajustado = ajustarRs(text || "");
+  const s = normalizePT(ajustado);
+  const keys = Object.keys(ARAB_MAP).sort((a,b)=>b.length-a.length);
+  let resultado = s;
+  for(const k of keys){ resultado = resultado.split(k).join(ARAB_MAP[k]); }
+  return resultado;
+}
+
+/* --- Tamil Literal --- */
+function translitTamilLiteral(text){
+  const s = normalizePT(text||"");
+  let out = '';
+  for(let i=0;i<s.length;){
+    let matched = false;
+    for(const dg of SIL_DG){
+      if(s.substr(i,dg.length) === dg){
+        for(const ch of dg) out += (TAM_LIT[ch] || ch);
+        i += dg.length;
+        matched = true;
+        break;
+      }
+    }
+    if(matched) continue;
+    out += (TAM_LIT[s[i]] || s[i]);
+    i++;
+  }
+  return out;
+}
+
+/* --- Tamil Silábico --- */
+function translitTamilSyllabic(text){
+  const s = normalizePT(text||"");
+  const tokens = s.match(/\s+|\S+/g) || [];
+  const out = tokens.map(tok=>{
+    if(!/[a-z]/.test(tok)) return tok;
+    const phon = [];
+    for(let i=0;i<tok.length;){
+      let found = false;
+      for(const dg of SIL_DG){
+        if(tok.substr(i,dg.length) === dg){ phon.push(dg); i+=dg.length; found=true; break; }
+      }
+      if(found) continue;
+      phon.push(tok[i]); i++;
+    }
+    const res = [];
+    for(let i=0;i<phon.length;){
+      const p = phon[i];
+      if(TAM_BASE[p]){
+        const next = phon[i+1];
+        if(next && ['a','e','i','o','u'].includes(next)){
+          const base = TAM_BASE[p].replace(/்$/,'');
+          const diac = TAM_VOW_DIAC[next] || '';
+          res.push(base + diac);
+          i += 2;
+        } else { res.push(TAM_BASE[p]); i++; }
+      } else if(['a','e','i','o','u'].includes(p)){ res.push(TAM_VOW_IND[p]||p); i++; }
+      else{ res.push(TAM_LIT[p] || p); i++; }
+    }
+    return res.join('');
+  });
+  return out.join('');
+}
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  /* --- MEMÓRIA TEMPORÁRIA --- */
+let cachedTexts = []; // “caixa” temporária em memória
+
+// Salvar o texto atual na memória
+function saveCurrentText(){
+  const variant = document.getElementById('variantSelect').value;
+  const inputVal = document.getElementById('inputText').value;
+  let txt = '';
+
+  if(variant === 'tamilLiteral') txt = translitTamilLiteral(inputVal);
+  else if(variant === 'tamilSyllabic') txt = translitTamilSyllabic(inputVal);
+  else if(variant === 'arabic') txt = translitArabic(inputVal);
+  else txt = {
+    'tamilLiteral': translitTamilLiteral(inputVal),
+    'tamilSyllabic': translitTamilSyllabic(inputVal),
+    'arabic': translitArabic(inputVal)
+  };
+
+  cachedTexts.push(txt); // adiciona à memória
+  renderSavedTexts(); // atualiza a visualização
+}
+
+// Abrir a janela de textos salvos
+function openSavedWindow(){
+  document.getElementById('savedTextsWindow').style.display = 'block';
+  renderSavedTexts();
+}
+
+// Fechar a janela
+function closeSavedWindow(){
+  document.getElementById('savedTextsWindow').style.display = 'none';
+}
+
+// Renderiza os textos salvos na tela
+function renderSavedTexts(){
+  const area = document.getElementById('savedTextsArea');
+  area.innerHTML = '';
+  cachedTexts.forEach((t,i) => {
+    const div = document.createElement('div');
+    if(typeof t === 'string') div.textContent = t;
+    else div.textContent = '[Variantes Salvas]';
+
+    const del = document.createElement('button');
+    del.textContent = '❌ Apagar';
+    del.onclick = () => {
+      cachedTexts.splice(i,1);
+      renderSavedTexts();
+    };
+
+    div.appendChild(del);
+    area.appendChild(div);
+  });
+}
+
+// Baixar todos os textos salvos em um arquivo .txt
+function baixarTextosSalvos(){
+  if(cachedTexts.length === 0){
+    alert("Nenhum texto salvo para baixar.");
+    return;
+  }
+
+  const dados = JSON.stringify(cachedTexts, null, 2);
+  const blob = new Blob([dados], {type: "text/plain"});
+  const url = URL.createObjectURL(blob);
+
+  const link = document.createElement("a");
+  link.href = url;
+  link.download = "textos_salvos.txt";
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+  URL.revokeObjectURL(url);
+}
+
+  
+  
+  
+  
+  
+/* --- Transliterate com seletor --- */
+function transliterar(){
+  const txt=document.getElementById('inputText').value||'';
+  const variant=document.getElementById('variantSelect').value;
+  if(variant==='tamilLiteral'){
+    document.getElementById('tamilLiteralDiv').style.display='block';
+    document.getElementById('tamilLiteral').textContent=translitTamilLiteral(txt);
+    document.getElementById('tamilSyllabicDiv').style.display='none';
+    document.getElementById('arabicDiv').style.display='none';
+  } else if(variant==='tamilSyllabic'){
+    document.getElementById('tamilSyllabicDiv').style.display='block';
+    document.getElementById('tamilSyllabic').textContent=translitTamilSyllabic(txt);
+    document.getElementById('tamilLiteralDiv').style.display='none';
+    document.getElementById('arabicDiv').style.display='none';
+  } else if(variant==='arabic'){
+    document.getElementById('arabicDiv').style.display='block';
+    document.getElementById('arabicOut').textContent=translitArabic(txt);
+    document.getElementById('tamilLiteralDiv').style.display='none';
+    document.getElementById('tamilSyllabicDiv').style.display='none';
+  } else {
+    document.getElementById('tamilLiteralDiv').style.display='block';
+    document.getElementById('tamilLiteral').textContent=translitTamilLiteral(txt);
+    document.getElementById('tamilSyllabicDiv').style.display='block';
+    document.getElementById('tamilSyllabic').textContent=translitTamilSyllabic(txt);
+    document.getElementById('arabicDiv').style.display='block';
+    document.getElementById('arabicOut').textContent=translitArabic(txt);
+  }
+}
+
+/* --- Inicialização --- */
+document.addEventListener('DOMContentLoaded',()=>{ transliterar(); });
+
+</script>
+</body>
+</html>
+
+
+
+
+
