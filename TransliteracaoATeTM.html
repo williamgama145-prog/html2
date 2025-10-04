@@ -19,6 +19,17 @@ pre{background:#fff;border:1px solid #ddd;padding:12px;border-radius:6px;white-s
 </head>
 <body>
 
+
+
+
+  
+<button onclick="playTTS('portugues','pt')">Ouvir Português</button>
+<button onclick="playTTS('tamilLiteral','ta')">Ouvir Tamil</button>
+<button onclick="playTTS('arabicOut','ar')">Ouvir Árabe</button>
+
+
+
+  
 <h2>Transliteração PT → Tamil / Árabe</h2>
 <textarea id="inputText">Carro é bonito, João foi lá.</textarea><br>
 
@@ -235,28 +246,21 @@ function renderSavedTexts(){
 
 
 }
-/* --- ÁUDIO --- */
-function speakOnline(id){
-  let text=''; let lang='pt';
-  if(id==='tamilLiteral'||id==='tamilSilabic'||id==='tamilSyllabic'){
-    text=(document.getElementById('tamilLiteral')||document.getElementById('tamilSilabic')||document.getElementById('tamilSyllabic')).textContent||'';
-    lang='ta'; if(document.getElementById(id)) text=document.getElementById(id).textContent||text;
-  } else if(id==='arabic'||id==='arabicOut'){
-    text=(document.getElementById('arabicOut')||document.getElementById('arabic')).textContent||'';
-    lang='ar';
-  } else{ const el=document.getElementById(id); if(el) text=el.textContent||''; }
-  text=(text||'').toString().trim(); if(!text) return;
-  const url=`https://translate.google.com/translate_tts?ie=UTF-8&q=${encodeURIComponent(text)}&tl=${lang}&client=tw-ob`;
-  const audio=new Audio(url); audio.play().catch(err=>console.warn('Erro ao tocar audio:',err));
-}
-
-function speakOnlineFromText(text,variant){
-  if(!text||!text.toString().trim()) return;
-  let lang='pt';
-  if(variant==='tamilLiteral'||variant==='tamilSyllabic'||variant==='tamilSilabic') lang='ta';
-  if(variant==='arabic'||variant==='arabicOut') lang='ar';
-  const url=`https://translate.google.com/translate_tts?ie=UTF-8&q=${encodeURIComponent(text)}&tl=${lang}&client=tw-ob`;
-  const audio=new Audio(url); audio.play().catch(err=>console.warn('Erro ao tocar audio salvo:',err));
+async function playTTS(id, lang){
+    const text = document.getElementById(id)?.textContent?.trim();
+    if(!text) return alert('Texto vazio!');
+    try {
+        const url = `https://translate.google.com/translate_tts?ie=UTF-8&q=${encodeURIComponent(text)}&tl=${lang}&client=tw-ob`;
+        const response = await fetch(url);
+        if(!response.ok) throw new Error('Falha ao obter áudio');
+        const blob = await response.blob();
+        const audioURL = URL.createObjectURL(blob);
+        const audio = new Audio(audioURL);
+        await audio.play();  // só toca quando o usuário clicar
+    } catch(err){
+        console.warn('Erro ao tocar áudio:', err);
+        alert('Não foi possível tocar o áudio.');
+    }
 }
 
 /* --- Transliterate com seletor --- */
@@ -294,3 +298,4 @@ document.addEventListener('DOMContentLoaded',()=>{ transliterar(); });
 </script>
 </body>
 </html>
+
