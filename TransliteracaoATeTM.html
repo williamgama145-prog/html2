@@ -53,23 +53,17 @@ pre { background: #fff; border: 1px solid #ddd; padding: 12px; border-radius: 6p
 
 <script>
 // Função TTS usando fetch + Blob (funciona no Android)
-async function playTTS(id, lang){
-    const el = document.getElementById(id);
-    const text = el?.value || el?.textContent?.trim();
-    if(!text) return alert('Texto vazio!');
-    try {
-        const url = `https://translate.google.com/translate_tts?ie=UTF-8&q=${encodeURIComponent(text)}&tl=${lang}&client=tw-ob`;
-        const response = await fetch(url);
-        if(!response.ok) throw new Error('Falha ao obter áudio');
-        const blob = await response.blob();
-        const audioURL = URL.createObjectURL(blob);
-        const audio = new Audio(audioURL);
-        await audio.play();
-    } catch(err){
-        console.warn('Erro ao tocar áudio:', err);
-        alert('Não foi possível tocar o áudio. Tente tocar o ícone novamente.');
-    }
-}
+<!-- Português -->
+<img src="https://img.icons8.com/material-outlined/24/000000/speaker.png"
+     onclick="speakNative(document.getElementById('inputText').value,'pt-PT')">
+
+<!-- Tamil -->
+<img src="https://img.icons8.com/material-outlined/24/000000/speaker.png"
+     onclick="speakNative(document.getElementById('tamilLiteral').textContent,'ta-IN')">
+
+<!-- Árabe -->
+<img src="https://img.icons8.com/material-outlined/24/000000/speaker.png"
+     onclick="speakNative(document.getElementById('arabicOut').textContent,'ar-SA')">
 
   
 
@@ -259,22 +253,16 @@ function renderSavedTexts(){
 
 
 }
-async function playTTS(id, lang){
-    const text = document.getElementById(id)?.textContent?.trim();
-    if(!text) return alert('Texto vazio!');
-    try {
-        const url = `https://translate.google.com/translate_tts?ie=UTF-8&q=${encodeURIComponent(text)}&tl=${lang}&client=tw-ob`;
-        const response = await fetch(url);
-        if(!response.ok) throw new Error('Falha ao obter áudio');
-        const blob = await response.blob();
-        const audioURL = URL.createObjectURL(blob);
-        const audio = new Audio(audioURL);
-        await audio.play();  // só toca quando o usuário clicar
-    } catch(err){
-        console.warn('Erro ao tocar áudio:', err);
-        alert('Não foi possível tocar o áudio.');
-    }
+// Função TTS nativa do navegador
+function speakNative(text, lang='pt-PT'){
+    if(!text || !text.trim()) return alert('Texto vazio!');
+    if(!window.speechSynthesis) return alert('TTS não disponível neste navegador');
+    
+    const utterance = new SpeechSynthesisUtterance(text);
+    utterance.lang = lang;
+    window.speechSynthesis.speak(utterance);
 }
+
 
 /* --- Transliterate com seletor --- */
 function transliterar(){
@@ -311,6 +299,7 @@ document.addEventListener('DOMContentLoaded',()=>{ transliterar(); });
 </script>
 </body>
 </html>
+
 
 
 
