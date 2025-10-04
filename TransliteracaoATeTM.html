@@ -214,13 +214,25 @@ function renderSavedTexts(){
   savedTexts.forEach((t,i)=>{
     const div=document.createElement('div');
     if(typeof t==='string') div.textContent=t;
-    else div.textContent='[Variantes Salvas]';
+    else {
+      div.innerHTML = `
+        Tamil Literal: ${t.tamilLiteral}<br>
+        Tamil Silábico: ${t.tamilSyllabic}<br>
+        Árabe: ${t.arabic}
+      `;
+    }
+
     const del=document.createElement('button');
     del.textContent='❌ Apagar';
-    del.onclick=()=>{ savedTexts.splice(i,1); localStorage.setItem('savedTexts',JSON.stringify(savedTexts)); renderSavedTexts();};
-    const speak=document.createElement('none');
-   // speak.textContent='🔊 Ouvir';
-    speak.onclick=()=>{
+    del.onclick=()=>{
+      savedTexts.splice(i,1);
+      localStorage.setItem('savedTexts',JSON.stringify(savedTexts));
+      renderSavedTexts();
+    };
+
+    const speakBtn=document.createElement('button');
+    speakBtn.textContent='🔊 Ouvir';
+    speakBtn.onclick=()=>{
       if(typeof t==='string') speakTextDirect(t,'pt-BR');
       else{
         if(t.tamilLiteral) speakTextDirect(t.tamilLiteral,'ta-IN');
@@ -228,15 +240,32 @@ function renderSavedTexts(){
         if(t.arabic) speakTextDirect(t.arabic,'ar-SA');
       }
     };
+
     div.appendChild(del);
-    div.appendChild(speak);
+    div.appendChild(speakBtn);
     area.appendChild(div);
   });
+}
+
 
 
 }
 
 /* --- ÁUDIO --- */
+
+
+
+  function speakTextDirect(text, lang='pt-BR'){
+  if(!text || !text.toString().trim()) return;
+  if('speechSynthesis' in window){
+    const utter = new SpeechSynthesisUtterance(text);
+    utter.lang = lang;
+    window.speechSynthesis.speak(utter);
+  } else {
+    alert('Seu navegador não suporta TTS');
+  }
+}
+
 function speakOnline(id){
   let text=''; let lang='pt';
   if(id==='tamilLiteral'||id==='tamilSilabic'||id==='tamilSyllabic'){
@@ -295,3 +324,4 @@ document.addEventListener('DOMContentLoaded',()=>{ transliterar(); });
 </script>
 </body>
 </html>
+
