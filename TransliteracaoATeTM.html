@@ -1,21 +1,25 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-<meta charset="UTF-8">
-<title>Transliteração PT → Tamil / wÁrabe</title>
+<meta charset="utf-8">
+<title>Transliteração PT → Tamil / Árabe</title>
 <style>
-body { font-family: Arial, sans-serif; padding: 20px; background: #f7f7f7; }
-textarea { width: 100%; height: 100px; font-size: 16px; padding: 8px; }
-button { margin-top: 8px; padding: 10px 16px; font-size: 16px; }
-pre { background: #fff; border: 1px solid #ddd; padding: 12px; border-radius: 6px; white-space: pre-wrap; }
-.label { font-weight: bold; margin-top: 12px; display: inline-block; margin-right: 5px; }
-.speaker { width: 20px; height: 20px; cursor: pointer; vertical-align: middle; }
+body{font-family:Arial,sans-serif;padding:20px;background:#f7f7f7;}
+textarea{width:100%;height:100px;font-size:16px;padding:8px;}
+button{margin-top:8px;padding:10px 16px;font-size:16px;}
+pre{background:#fff;border:1px solid #ddd;padding:12px;border-radius:6px;white-space:pre-wrap;}
+.label{font-weight:bold;margin-top:12px;display:inline-block;margin-right:5px;}
+.speaker{width:20px;height:20px;cursor:pointer;vertical-align:middle;}
+#savedTextsArea div{margin-bottom:5px;padding:5px;border:1px solid #ccc;border-radius:5px;background:#f0f0f0;}
+#savedTextsWindow{display:none;position:fixed;top:50px;left:50%;transform:translateX(-50%);width:90%;max-width:500px;height:70%;background:#fff;border:2px solid #000;overflow:auto;padding:10px;z-index:1000;}
+#savedTextsWindow h3{margin-top:0;}
+#closeSavedWindow{float:right;cursor:pointer;font-weight:bold;}
+.audioBtn{cursor:pointer;margin-left:8px;vertical-align:middle;}
 </style>
 </head>
 <body>
 
-<h2>Transliteração PT → Tamil / wÁrabe</h2>
-
+<h2>Transliteração PT → Tamil / Árabe</h2>
 <textarea id="inputText">Carro é bonito, João foi lá.</textarea><br>
 
 <select id="variantSelect">
@@ -27,47 +31,22 @@ pre { background: #fff; border: 1px solid #ddd; padding: 12px; border-radius: 6p
 <button onclick="transliterar()">Transliterar</button>
 
 <div id="resultArea">
-  <div id="tamilLiteralDiv" style="display:block; margin-top:15px;">
+  <div id="tamilLiteralDiv" style="display:none">
     <span class="label">Tamil Literal:</span>
-    <img src="https://img.icons8.com/material-outlined/24/000000/speaker.png" class="speaker" onclick="playTTS('tamilLiteral','ta')">
-    <pre id="tamilLiteral">வணக்கம், ஜோவா கார் அழகாக உள்ளது.</pre>
+    <pre id="tamilLiteral"></pre>
   </div>
 
-  <div id="tamilSyllabicDiv" style="display:block; margin-top:15px;">
+  <div id="tamilSyllabicDiv" style="display:none">
     <span class="label">Tamil Silábico:</span>
-    <img src="https://img.icons8.com/material-outlined/24/000000/speaker.png" class="speaker" onclick="playTTS('tamilSyllabic','ta')">
-    <pre id="tamilSyllabic">வ-ண-க்-க-ம், ஜோ-வா கா-ர் அ-ழ-கா-க் உ-ள்-ள-து.</pre>
+    <pre id="tamilSyllabic"></pre>
   </div>
 
-  <div id="arabicDiv" style="display:block; margin-top:15px;">
+  <div id="arabicDiv" style="display:none">
     <span class="label">Árabe:</span>
-    <img src="https://img.icons8.com/material-outlined/24/000000/speaker.png" class="speaker" onclick="playTTS('arabicOut','ar')">
-    <pre id="arabicOut">السيارة جميلة، ذهب جوا إلى هناك.</pre>
+    <pre id="arabicOut"></pre>
   </div>
 </div>
 
-<div style="margin-top:20px;">
-  <span class="label">Português:</span>
-  <img src="https://img.icons8.com/material-outlined/24/000000/speaker.png" class="speaker" onclick="playTTS('inputText','pt')">
-</div>
-
-<script>
-// Função TTS usando fetch + Blob (funciona no Android)
-<!-- Português -->
-<img src="https://img.icons8.com/material-outlined/24/000000/speaker.png"
-     onclick="speakNative(document.getElementById('inputText').value,'pt-PT')">
-
-<!-- Tamil -->
-<img src="https://img.icons8.com/material-outlined/24/000000/speaker.png"
-     onclick="speakNative(document.getElementById('tamilLiteral').textContent,'ta-IN')">
-
-<!-- Árabe -->
-<img src="https://img.icons8.com/material-outlined/24/000000/speaker.png"
-     onclick="speakNative(document.getElementById('arabicOut').textContent,'ar-SA')">
-
-  
-
-  
 <h3>Memória do Aplicativo</h3>
 <button onclick="saveCurrentText()">💾 Salvar Texto Atual</button>
 <button onclick="openSavedWindow()">📄 Ver Textos Salvos</button>
@@ -237,7 +216,7 @@ function renderSavedTexts(){
     del.textContent='❌ Apagar';
     del.onclick=()=>{ savedTexts.splice(i,1); localStorage.setItem('savedTexts',JSON.stringify(savedTexts)); renderSavedTexts();};
     const speak=document.createElement('none');
-   // speak.textContent='🔊 Ouvir';
+  //  speak.textContent='🔊 Ouvir';
     speak.onclick=()=>{
       if(typeof t==='string') speakTextDirect(t,'pt-BR');
       else{
@@ -253,16 +232,6 @@ function renderSavedTexts(){
 
 
 }
-// Função TTS nativa do navegador
-function speakNative(text, lang='pt-PT'){
-    if(!text || !text.trim()) return alert('Texto vazio!');
-    if(!window.speechSynthesis) return alert('TTS não disponível neste navegador');
-    
-    const utterance = new SpeechSynthesisUtterance(text);
-    utterance.lang = lang;
-    window.speechSynthesis.speak(utterance);
-}
-
 
 /* --- Transliterate com seletor --- */
 function transliterar(){
@@ -299,11 +268,3 @@ document.addEventListener('DOMContentLoaded',()=>{ transliterar(); });
 </script>
 </body>
 </html>
-
-
-
-
-
-
-
-
