@@ -22,35 +22,73 @@ pre{background:#fff;border:1px solid #ddd;padding:12px;border-radius:6px;white-s
 <h2>Transliteração PT → Tamil / Árabe</h2>
 <textarea id="inputText"></textarea><br>
 
+
+  
+  
 <select id="variantSelect">
   <option value="all">Todos</option>
   <option value="tamilLiteral">Tamil Literal</option>
   <option value="tamilSyllabic">Tamil Silábico</option>
   <option value="arabic">Árabe</option>
 </select>
-<button onclick="transliterar()">Transliterar</button>
+
+<!-- Botões com a mesma classe -->
+<button class="btnAction" onclick="transliterar()">Transliterar</button>
+<button class="btnAction" onclick="apagarTexto()">🗑️ Apagar Texto</button>
+
+<script>
+// Função simples para apagar o texto do textarea
+function apagarTexto(){
+  document.getElementById('inputText').value = '';
+}
+</script>
+
+<style>
+/* Define largura, altura e padding iguais para os dois botões */
+.btnAction {
+  width: 160px;       /* largura fixa, ajustável */
+  height: 40px;       /* altura fixa */
+  font-size: 16px;
+  margin-top: 8px;
+  margin-right: 8px;
+  cursor: pointer;
+}
+</style>
+
+  
+  
+
+  
+  
+  
 
 <div id="resultArea">
   <div id="tamilLiteralDiv" style="display:none">
     <span class="label">Tamil Literal:</span>
     <pre id="tamilLiteral"></pre>
+    <button onclick="copiarTransliteracao('tamilLiteral')">📋 Copiar</button>
   </div>
 
   <div id="tamilSyllabicDiv" style="display:none">
     <span class="label">Tamil Silábico:</span>
     <pre id="tamilSyllabic"></pre>
+    <button onclick="copiarTransliteracao('tamilSyllabic')">📋 Copiar</button>
   </div>
 
   <div id="arabicDiv" style="display:none">
     <span class="label">Árabe:</span>
     <pre id="arabicOut"></pre>
+    <button onclick="copiarTransliteracao('arabicOut')">📋 Copiar</button>
   </div>
 </div>
+
 
 <h3>Memória do Aplicativo</h3>
 <button onclick="saveCurrentText()">💾 Salvar Texto Atual</button>
 <button onclick="openSavedWindow()">📄 Ver Textos Salvos</button>
 
+
+  
 <!-- Janela separada de textos salvos -->
 <div id="savedTextsWindow">
   <h3>Textos Salvos <span id="closeSavedWindow" onclick="closeSavedWindow()">✖</span></h3>
@@ -293,6 +331,27 @@ function transliterar(){
     document.getElementById('arabicOut').textContent=translitArabic(txt);
   }
 }
+  
+  
+  
+  
+  function copiarTransliteracao(idElemento) {
+  const el = document.getElementById(idElemento);
+  if (!el) return;
+  
+  const temp = document.createElement('textarea');
+  temp.value = el.textContent;
+  document.body.appendChild(temp);
+  temp.select();
+  document.execCommand('copy');
+  document.body.removeChild(temp);
+
+ 
+}
+
+  
+  
+  
 
 /* --- Inicialização --- */
 document.addEventListener('DOMContentLoaded',()=>{ transliterar(); });
@@ -300,7 +359,6 @@ document.addEventListener('DOMContentLoaded',()=>{ transliterar(); });
 </script>
 </body>
 </html>
-
 
 
 
